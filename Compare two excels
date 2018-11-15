@@ -1,0 +1,109 @@
+Sub Example1()
+Dim objFSO As Object
+Dim objFolder As Object
+Dim objFile As Object
+Dim i As Integer
+Dim lastRow As Long
+Dim lastCol As Long
+Dim wb2 As Workbook
+Dim wb1 As Workbook
+Dim wb3 As Workbook
+Dim m As Integer
+Dim n As Integer
+Dim cnt As Integer
+
+Const SortColumn = "L" ' Column L - change to suit
+'Create an instance of the FileSystemObject
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+'Get the folder object
+Set objFolder = objFSO.GetFolder("C:\Users\balaswamy\Desktop\Tip\test")
+i = 1
+'loops through each file in the directory and prints their names and path
+For Each objFile In objFolder.Files
+'print file name
+Cells(i + 1, 1) = objFile.Name
+'print file path
+'Set wb1 = Workbooks.Open(Filename:=objFile.Name)
+If InStr(objFile.Name, ".") > 0 Then
+Filename = Left(objFile.Name, InStr(objFile.Name, ".") - 1)
+End If
+
+Set wb1 = Workbooks.Add
+wb1.SaveAs "C:\Users\balaswamy\Desktop\Tip\" + Filename + "Validation.xlsx"
+
+Set wb2 = Workbooks.Open("C:\Users\balaswamy\Desktop\Tip\test\" + objFile.Name)
+wb2.Sheets("sheet1").Select
+Selection.Copy
+    Application.CutCopyMode = False
+    wb2.Sheets("sheet1").Copy after:=wb1.Sheets(1)
+    wb2.Close
+    Sheets(2).Select
+    Sheets(2).Name = "01"
+    wb1.Save
+    
+' Find the last row
+lastRow = wb1.Sheets("01").Cells(wb1.Sheets("01").Rows.Count, 1).End(xlUp).Row
+
+' Find the last column
+lastCol = wb1.Sheets("01").Cells(1, wb1.Sheets("01").Columns.Count).End(xlToLeft).Column
+
+'MsgBox (lastRow)
+'MsgBox (lastCol)
+    With ActiveSheet.Sort
+     .SortFields.Add Key:=Range("A1"), Order:=xlAscending
+     .SortFields.Add Key:=Range("B1"), Order:=xlAscending
+     .SetRange Range(Cells(1, 1), Cells(lastRow, lastCol))
+     '.Header = xlYes
+     .Apply
+End With
+    
+Set wb3 = Workbooks.Open("C:\Users\balaswamy\Desktop\Tip\test1\" + objFile.Name)
+wb3.Sheets(1).Select
+Selection.Copy
+    Application.CutCopyMode = False
+    wb3.Sheets(1).Copy after:=wb1.Sheets(2)
+    wb3.Close
+    Sheets(3).Select
+    Sheets(3).Name = "02"
+    wb1.Save
+ lastRow = wb1.Sheets("02").Cells(wb1.Sheets("02").Rows.Count, 1).End(xlUp).Row
+
+' Find the last column
+lastCol = wb1.Sheets("02").Cells(1, wb1.Sheets("02").Columns.Count).End(xlToLeft).Column
+
+'MsgBox (lastRow)
+'MsgBox (lastCol)
+    With ActiveSheet.Sort
+     .SortFields.Add Key:=Range("A1"), Order:=xlAscending
+     .SortFields.Add Key:=Range("B1"), Order:=xlAscending
+     .SetRange Range(Cells(1, 1), Cells(lastRow, lastCol))
+     '.Header = xlYes
+     .Apply
+End With
+'wb2.Sheets(1).Activate currentSheet.Select
+'currentSheet.Copy Before:=Workbooks(wb1).Sheets(1)
+
+wb1.Sheets(1).Name = "Validations"
+wb1.Sheets(1).Activate
+cnt = 0
+For i = 1 To lastRow
+For j = 1 To lastCol
+ If Sheets("01").Cells(i, j) = Sheets("02").Cells(i, j) Then
+    Sheets(1).Cells(i, j) = "TRUE"
+     Else
+       Sheets(1).Cells(i, j) = "FALSE"
+       cnt = cnt + 1
+        
+ End If
+ Next j
+ Next i
+
+MsgBox (cnt)
+wb1.Save
+wb1.Close
+
+
+ Cells(i + 1, 2) = objFile.Path
+ i = i + 1
+Next objFile
+End Sub
